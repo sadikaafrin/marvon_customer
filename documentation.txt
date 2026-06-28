@@ -1,0 +1,39 @@
+post-commit:
+---------------------------- START ----------------------------
+
+#!/bin/bash
+
+echo "Starting deployment..."
+
+SOURCE="/c/Users/Arrow Tech/Documents/react-apps/DokanX"
+DEPLOY_ROOT="/c/Users/Arrow Tech/Documents/react-apps"
+CLIENTS=("DokanX-Easy-Tech")
+
+for CLIENT in "${CLIENTS[@]}"; do
+    DEST="$DEPLOY_ROOT/$CLIENT"
+    
+    echo "Deploying shared code to $CLIENT..."
+    
+    # 1. Copy all shared files, excluding client-specific configs
+    rsync -av \
+    --exclude '.git' \
+    --exclude 'client_configs/' \
+    --exclude 'dist/' \
+    --exclude 'node_modules/' \
+    --exclude 'public/' \
+    --exclude 'src/assets/css/theme.css' \
+    --exclude '.env.local' \
+    --exclude 'documentation.txt' \
+    --exclude 'index.html'\
+    --exclude 'README.md' \
+    --delete "$SOURCE/" "$DEST/"
+    
+    # 2. Copy client-specific configs on top
+    rsync -av "$SOURCE/client_configs/$CLIENT/" "$DEST/"
+    
+    echo "Deployment for $CLIENT completed!"
+done
+
+echo "All deployments finished!"
+
+---------------------------- END ----------------------------

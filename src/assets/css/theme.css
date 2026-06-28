@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+:root {
+    --theme: #E74297;
+    --themehover: #17586a;
+    --counterbg: #E74297;
+
+    --white: #fff;
+    --black: #000;
+    --gray: #787878;
+    --topback: #F4F6F8;
+    --back2: #fffcf886;
+
+    --navbarbg: #000000;
+    --navbarText: #ffffff;
+
+    --copyrightbg: #1a1a1a;
+    --copyrightText: #ffffff;
+
+    --cartBtnBg: #000000;
+    --cartBtnText: #ffffff;
+    --cartBtnHoverBg: #2a2a2a;
+    --cartBtnHoverText: #ffffff;
+
+    --buyBtnBg: #2c2c2c;
+    --buyBtnText: #ffffff;
+    --buyBtnHoverBg: #131313;
+    --buyBtnHoverText: #ffffff;
+
+    --subsbtnBg: #E74297;
+    --subsbtnText: #ffffff;
+    --subsbtnHoverBg: #11579e;
+    --subsbtnHoverText: #ffffff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Fira Sans", sans-serif;
+    font-weight: 400;
+}
