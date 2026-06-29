@@ -13,16 +13,24 @@ function OrderSuccess() {
 
     // If no invoice number, redirect to home
     useEffect(() => {
-        if (!invoiceNo) {
+        if (!invoiceNo && !sessionStorage.getItem("lastOrderData")) {
             navigate('/');
         }
     }, [invoiceNo, navigate]);
-
-    if (!invoiceNo || !orderData) {
+    
+    // Fallback to sessionStorage if state is lost (e.g. page refresh)
+    const resolvedOrderData = orderData || JSON.parse(sessionStorage.getItem("lastOrderData") || "null");
+    const resolvedInvoiceNo = invoiceNo || new URLSearchParams(window.location.search).get("invoice");
+    
+    if (!resolvedInvoiceNo || !resolvedOrderData) {
         return null;
     }
 
-    const { customerInfo, items, pricing, paymentInfo } = orderData;
+    // const { customerInfo, items, pricing, paymentInfo } = orderData;
+    const { customerInfo, items, pricing, paymentInfo } = resolvedOrderData;
+
+
+    
 
     return (
         <>
@@ -57,7 +65,8 @@ function OrderSuccess() {
                     {/* Invoice Number */}
                     <div className="p-3 bg-light rounded mb-4 text-center">
                         <p className="fw-semibold mb-1">Invoice Number</p>
-                        <h4 className="text-success fw-bold">{invoiceNo}</h4>
+                        {/* <h4 className="text-success fw-bold">{invoiceNo}</h4> */}
+                        <h4 className="text-success fw-bold">{resolvedInvoiceNo}</h4>
                     </div>
 
                     {/* Customer Information */}

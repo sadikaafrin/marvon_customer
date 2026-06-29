@@ -497,7 +497,7 @@ b {
 }
 
 .buy-now-btn:hover:not(:disabled) {
-    background: #212529;
+    background: #E74297;
     color: white;
     transform: translateY(-2px);
 }

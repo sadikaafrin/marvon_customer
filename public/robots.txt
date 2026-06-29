@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://user-demo.dokanxbd.com/sitemap.xml
+Sitemap: https://mavonn.luxuryloverpro.com/sitemap.xml

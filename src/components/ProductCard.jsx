@@ -28,7 +28,6 @@ function ProductCard({ product }) {
   const { colors } = useColors();
 
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [imgError, setImgError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -86,129 +85,10 @@ function ProductCard({ product }) {
     : 0;
   const rating = Number(product.average_rating) || 0;
 
-  // ============================================
-  // IMAGE URL HANDLING - FIXED for uploads/products/
-  // ============================================
-  const getImageUrl = (imgPath) => {
-    if (!imgPath) return null;
-    
-    // If it's already a full URL, return it
-    if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
-      return imgPath;
-    }
-    
-    // If it starts with '/uploads/', it's a root-relative path
-    if (imgPath.startsWith('/uploads/')) {
-      return imgPath;
-    }
-    
-    // If it starts with 'uploads/', add leading slash
-    if (imgPath.startsWith('uploads/')) {
-      return `/${imgPath}`;
-    }
-    
-    // If it contains 'uploads/products/' anywhere in the path
-    if (imgPath.includes('uploads/products/')) {
-      const uploadsIndex = imgPath.indexOf('uploads/');
-      if (uploadsIndex !== -1) {
-        const pathFromUploads = imgPath.substring(uploadsIndex);
-        return `/${pathFromUploads}`;
-      }
-    }
-    
-    // If it's just a filename (e.g., "prod_12345.jpg"), assume it's in uploads/products/
-    if (!imgPath.includes('/') && !imgPath.includes('\\')) {
-      return `/uploads/products/${imgPath}`;
-    }
-    
-    // If it has backslashes (Windows path), convert to forward slashes
-    if (imgPath.includes('\\')) {
-      const normalizedPath = imgPath.replace(/\\/g, '/');
-      if (normalizedPath.includes('uploads/products/')) {
-        const uploadsIndex = normalizedPath.indexOf('uploads/');
-        if (uploadsIndex !== -1) {
-          return `/${normalizedPath.substring(uploadsIndex)}`;
-        }
-      }
-      return `/${normalizedPath}`;
-    }
-    
-    // Otherwise, assume it's a relative path from root
-    return imgPath.startsWith('/') ? imgPath : `/${imgPath}`;
-  };
-
-  // Get the primary image - check all possible fields
-  const getPrimaryImage = () => {
-    // Check all possible image fields from your backend
-    const possibleFields = [
-      'product_img1',
-      'img', 
-      'image', 
-      'images', 
-      'product_img',
-      'main_image',
-      'image_url'
-    ];
-    
-    for (const field of possibleFields) {
-      if (product[field]) {
-        // If it's an array, get the first item
-        if (Array.isArray(product[field]) && product[field].length > 0) {
-          return product[field][0];
-        }
-        // If it's a string, return it
-        if (typeof product[field] === 'string') {
-          return product[field];
-        }
-      }
-    }
-    
-    return null;
-  };
-
-  // Get secondary image for hover
-  const getSecondaryImage = () => {
-    const possibleFields = ['product_img2', 'img2', 'image2', 'secondary_image', 'hover_image'];
-    
-    for (const field of possibleFields) {
-      if (product[field] && typeof product[field] === 'string') {
-        return product[field];
-      }
-    }
-    
-    return null;
-  };
-
-  const primaryImg = getPrimaryImage();
-  const secondaryImg = getSecondaryImage();
-
-  // Process image URLs
-  const processedPrimaryImg = getImageUrl(primaryImg);
-  const processedSecondaryImg = secondaryImg ? getImageUrl(secondaryImg) : null;
-
-  // Determine which image to display
-  const displayImg = (isHovered && processedSecondaryImg) ? processedSecondaryImg : processedPrimaryImg;
-
-  // Default placeholder image - you can create a placeholder image in your public folder
-  const placeholderImage = '/images/placeholder.jpg';
-
-  // Debug logging - check console to see what's happening
-  console.log('Product Image Debug:', {
-    title: product.title,
-    primaryImg,
-    processedPrimaryImg,
-    secondaryImg,
-    processedSecondaryImg,
-    displayImg,
-    allImageFields: {
-      product_img1: product.product_img1,
-      img: product.img,
-      image: product.image,
-      images: product.images,
-      product_img2: product.product_img2,
-      img2: product.img2,
-    }
-  });
+  // Image flip on hover (img2)
+  const primaryImg = product.img;
+  const secondaryImg = (product.additional_images && product.additional_images[0]) || product.img;
+  const displayImg = isHovered && product.img2 ? secondaryImg : primaryImg;
 
   return (
     <>
@@ -218,7 +98,7 @@ function ProductCard({ product }) {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          {!imgLoaded && !imgError && (
+          {!imgLoaded && (
             <Skeleton
               variant="rectangular"
               width="100%"
@@ -229,23 +109,11 @@ function ProductCard({ product }) {
           )}
 
           <img
-            src={imgError ? placeholderImage : (displayImg || placeholderImage)}
+            src={displayImg}
             className="product-image"
-            alt={product.title || 'Product'}
-            style={{ 
-              opacity: imgLoaded ? 1 : 0, 
-              transition: "opacity 0.2s ease, transform 0.4s ease" 
-            }}
-            onLoad={() => {
-              setImgLoaded(true);
-              setImgError(false);
-            }}
-            onError={(e) => {
-              setImgError(true);
-              setImgLoaded(true);
-              console.error('Failed to load image:', displayImg);
-              console.error('Error event:', e);
-            }}
+            alt={product.title}
+            style={{ opacity: imgLoaded ? 1 : 0, transition: "opacity 0.2s ease, transform 0.4s ease" }}
+            onLoad={() => setImgLoaded(true)}
           />
 
           {/* Stock / Discount Badge */}

@@ -101,12 +101,14 @@ export default function Checkout() {
   }, [carts]);
 
   const inside_location = webInfo?.inside_location || "Dhaka";
+  const nearest_dhaka_charge = webInfo?.nearest_dhaka_charge || 100;
   const inside_delivery_charge = webInfo?.inside_delivery_charge || 80;
   const outside_delivery_charge = webInfo?.outside_delivery_charge || 150;
 
   const [selectedCity, setSelectedCity] = useState(`Inside ${inside_location}`);
 
   const deliveryOptions = [
+    { id: "Nearest Dhaka", label: `Nearest ${inside_location}`, charge: nearest_dhaka_charge, time: "1 - 2 days", icon: <Truck size={24} color="var(--theme)" /> },
     { id: "inside", label: `Inside ${inside_location}`, charge: inside_delivery_charge, time: "1 - 2 days", icon: <Truck size={24} color="var(--theme)" /> },
     { id: "outside", label: `Outside ${inside_location}`, charge: outside_delivery_charge, time: "2 - 4 days", icon: <Zap size={24} color="#333" /> },
   ];
@@ -219,7 +221,13 @@ export default function Checkout() {
           window.location.href = data.payment_url;
           return;
         } else {
-          navigate(`/order-success?invoice=${invoiceNo}`);
+          // navigate(`/order-success?invoice=${invoiceNo}`);
+          navigate(`/order-success`, {
+            state: {
+              invoiceNo: invoiceNo,
+              orderData: orderData
+            }
+          });
         }
       } else if (data.status === "warning") {
         setBlockedWarning(data.message);
