@@ -108,9 +108,9 @@ export default function Checkout() {
   const [selectedCity, setSelectedCity] = useState(`Inside ${inside_location}`);
 
   const deliveryOptions = [
-    { id: "Nearest Dhaka", label: `Nearest ${inside_location}`, charge: nearest_dhaka_charge, time: "1 - 2 days", icon: <Truck size={24} color="var(--theme)" /> },
+    { id: "Nearest Dhaka", label: `Sub ${inside_location}`, charge: nearest_dhaka_charge, time: "1 - 2 days", icon: <Truck size={24} color="var(--theme)" /> },
     { id: "inside", label: `Inside ${inside_location}`, charge: inside_delivery_charge, time: "1 - 2 days", icon: <Truck size={24} color="var(--theme)" /> },
-    { id: "outside", label: `Outside ${inside_location}`, charge: outside_delivery_charge, time: "2 - 4 days", icon: <Zap size={24} color="#333" /> },
+    { id: "outside", label: `Outside of ${inside_location}`, charge: outside_delivery_charge, time: "2 - 4 days", icon: <Zap size={24} color="#333" /> },
   ];
 
   // Update selected city label when webInfo loads

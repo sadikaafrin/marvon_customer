@@ -8,6 +8,8 @@ import Skeleton from '@mui/material/Skeleton';
 function Category() {
   const { slug } = useParams();
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
   const [category, setCategory] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -15,6 +17,8 @@ function Category() {
   const [searchTerm, setSearchTerm] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [selectedMainCategory, setSelectedMainCategory] = useState("");
+  const [selectedSubCategory, setSelectedSubCategory] = useState("");
   const [sortBy, setSortBy] = useState("");
 
   const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 });
@@ -47,13 +51,24 @@ function Category() {
           setMaxPrice(max);
         }
 
-        // Fetch category info (optional - you can also get this from the first product)
+        // Fetch category info
         if (categoryProducts.length > 0) {
           setCategory({
             title: categoryProducts[0].category || slug,
             description: `Browse our collection of ${categoryProducts[0].category || slug} products`
           });
         }
+
+        // 🔥 FIX: Extract categories and subcategories from ALL products (same as Shop.jsx)
+        const uniqueMainCats = [...new Set(data.map(p => p.category).filter(Boolean))];
+        setCategories(uniqueMainCats);
+
+        const uniqueSubCats = [...new Map(
+          data
+            .filter(p => p.sub_category)
+            .map(p => [p.sub_category, { name: p.sub_category, parent: p.category }])
+        ).values()];
+        setSubCategories(uniqueSubCats);
 
       } catch (err) {
         console.error("Failed to fetch products:", err);
@@ -64,6 +79,21 @@ function Category() {
 
     fetchCategoryProducts();
   }, [slug]);
+
+  // Filter subcategories based on main category
+  const availableSubCategories = useMemo(() => {
+    if (!selectedMainCategory) return subCategories;
+    return subCategories.filter(sub => sub.parent === selectedMainCategory);
+  }, [selectedMainCategory, subCategories]);
+
+  useEffect(() => {
+    if (selectedMainCategory) {
+      const isValidSub = availableSubCategories.some(sub => sub.name === selectedSubCategory);
+      if (!isValidSub) {
+        setSelectedSubCategory("");
+      }
+    }
+  }, [selectedMainCategory, availableSubCategories, selectedSubCategory]);
 
   // Filter & Sort
   const filteredProducts = useMemo(() => {
@@ -85,25 +115,37 @@ function Category() {
       return price >= min && price <= max;
     });
 
+    // 🔥 FIX: Apply main category filter
+    if (selectedMainCategory) {
+      filtered = filtered.filter(p => p.category === selectedMainCategory);
+    }
+
+    // 🔥 FIX: Apply subcategory filter
+    if (selectedSubCategory) {
+      filtered = filtered.filter(p => p.sub_category === selectedSubCategory);
+    }
+
     if (sortBy === "low_to_high") {
       filtered.sort((a, b) => (parseFloat(a.selling_price) || parseFloat(a.price) || 0) - (parseFloat(b.selling_price) || parseFloat(b.price) || 0));
     } else if (sortBy === "high_to_low") {
       filtered.sort((a, b) => (parseFloat(b.selling_price) || parseFloat(b.price) || 0) - (parseFloat(a.selling_price) || parseFloat(a.price) || 0));
     } else if (sortBy === "a_z") {
-      filtered.sort((a, b) => a.title.localeCompare(b.title));
+      filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
     } else if (sortBy === "z_a") {
-      filtered.sort((a, b) => b.title.localeCompare(a.title));
+      filtered.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
     } else if (sortBy === "newest") {
       filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
 
     return filtered;
-  }, [products, searchTerm, minPrice, maxPrice, sortBy]);
+  }, [products, searchTerm, minPrice, maxPrice, sortBy, selectedMainCategory, selectedSubCategory]);
 
   const handleClearFilters = () => {
     setSearchTerm("");
     setMinPrice(priceRange.min);
     setMaxPrice(priceRange.max);
+    setSelectedMainCategory("");
+    setSelectedSubCategory("");
     setSortBy("");
   };
 
@@ -133,7 +175,6 @@ function Category() {
             <div className="col-12 d-md-none">
               <div className={`mobile-filter-box ${showMobileFilters ? "open" : ""}`}>
                 <aside className="shop-sidebar">
-                  {/* --- FILTER CONTENT (same as desktop) --- */}
                   <div className="mb-3">
                     <label className="filter-title">Search</label>
                     <input 
@@ -165,6 +206,37 @@ function Category() {
                     </div>
                   </div>
 
+                  {/* Category */}
+                  <div className="mb-3">
+                    <label className="filter-title">Main Category</label>
+                    <select 
+                      className="form-control"
+                      value={selectedMainCategory}
+                      onChange={(e) => setSelectedMainCategory(e.target.value)}
+                    >
+                      <option value="">All main categories</option>
+                      {categories.map((cat, idx) => (
+                        <option key={idx} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* SubCategory */}
+                  <div className="mb-3">
+                    <label className="filter-title">Sub Category</label>
+                    <select 
+                      className="form-control"
+                      value={selectedSubCategory}
+                      onChange={(e) => setSelectedSubCategory(e.target.value)}
+                    >
+                      <option value="">All sub categories</option>
+                      {availableSubCategories.map((sub, idx) => (
+                        <option key={idx} value={sub.name}>{sub.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Sort */}
                   <div className="mb-3">
                     <label className="filter-title">Sort</label>
                     <select 
@@ -229,6 +301,36 @@ function Category() {
                   </div>
                 </div>
 
+                {/* 🔥 FIX: Add Main Category filter to desktop */}
+                <div className="mb-3">
+                  <label className="filter-title">Main Category</label>
+                  <select 
+                    className="form-control"
+                    value={selectedMainCategory}
+                    onChange={(e) => setSelectedMainCategory(e.target.value)}
+                  >
+                    <option value="">All main categories</option>
+                    {categories.map((cat, idx) => (
+                      <option key={idx} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 🔥 FIX: Add Sub Category filter to desktop */}
+                <div className="mb-3">
+                  <label className="filter-title">Sub Category</label>
+                  <select 
+                    className="form-control"
+                    value={selectedSubCategory}
+                    onChange={(e) => setSelectedSubCategory(e.target.value)}
+                  >
+                    <option value="">All sub categories</option>
+                    {availableSubCategories.map((sub, idx) => (
+                      <option key={idx} value={sub.name}>{sub.name}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="mb-3">
                   <label className="filter-title">Sort</label>
                   <select 
@@ -246,7 +348,6 @@ function Category() {
                 </div>
 
                 <div className="mb-3">
-                  {/* <label className="filter-title">Stats</label> */}
                   <div className="stats-card">
                     <div className="d-flex justify-content-between mb-2 small">
                       <span className="text-muted">Total Products:</span>
@@ -260,7 +361,12 @@ function Category() {
                 </div>
 
                 <div className="filter-actions mt-3">
-                  <button className="btn btn-dark btn-modern w-100">Apply</button>
+                  <button 
+                    className="btn btn-dark btn-modern w-100"
+                    onClick={() => {}}
+                  >
+                    Apply
+                  </button>
                   <button 
                     className="btn clear-btn btn-modern w-100"
                     onClick={handleClearFilters}
